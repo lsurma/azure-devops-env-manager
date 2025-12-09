@@ -73,8 +73,14 @@
             @foreach (var library in Model.VariableLibraries)
             {
                 <div class="card mb-4">
-                    <div class="card-header bg-primary text-white">
+                    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                         <h3 class="h5 mb-0">@library.Name (ID: @library.Id)</h3>
+                        <button type="button" class="btn btn-sm btn-light" 
+                                data-group-id="@library.Id"
+                                data-variable-names="@System.Text.Json.JsonSerializer.Serialize(library.Variables.Keys)"
+                                onclick="showCloneModal(this)">
+                            Clone as Template
+                        </button>
                     </div>
                     <div class="card-body">
                         @if (library.Variables.Any())
@@ -175,6 +181,36 @@
     </section>
 </div>
 
+<!-- Clone Variable Group Modal -->
+<div class="modal fade" id="cloneModal" tabindex="-1" aria-labelledby="cloneModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="cloneModalLabel">Clone Variable Group as Template</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" asp-page-handler="CreateFromTemplate" id="cloneForm">
+                <div class="modal-body">
+                    <input type="hidden" name="TemplateGroupId" id="templateGroupId" />
+                    <div class="mb-3">
+                        <label for="newGroupName" class="form-label">New Variable Group Name</label>
+                        <input type="text" class="form-control" id="newGroupName" name="NewGroupName" required />
+                        <div class="form-text">Enter a unique name for the new variable group.</div>
+                    </div>
+                    <hr />
+                    <h6>Variable Values</h6>
+                    <p class="text-muted small">Enter new values for each variable. Leave blank to keep the original value.</p>
+                    <div id="variableFields"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Create Variable Group</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <script>
     function showEditForm(button) {
         // Hide all other edit forms
@@ -199,4 +235,47 @@
             editForm.style.display = 'none';
         }
     }
+
+    function showCloneModal(button) {
+        // Get the group ID and variable names from data attributes
+        const groupId = button.getAttribute('data-group-id');
+        const variableNamesJson = button.getAttribute('data-variable-names');
+        
+        // Set the template group ID
+        document.getElementById('templateGroupId').value = groupId;
+        
+        // Clear the new group name
+        document.getElementById('newGroupName').value = '';
+        
+        // Parse variable names
+        const variableNames = JSON.parse(variableNamesJson);
+        
+        // Generate input fields for each variable
+        const container = document.getElementById('variableFields');
+        container.innerHTML = '';
+        
+        variableNames.forEach(varName => {
+            const fieldGroup = document.createElement('div');
+            fieldGroup.className = 'mb-3';
+            
+            const label = document.createElement('label');
+            label.className = 'form-label';
+            label.textContent = varName;
+            
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.className = 'form-control';
+            input.name = 'var_' + varName;
+            input.placeholder = 'Enter new value or leave blank';
+            
+            fieldGroup.appendChild(label);
+            fieldGroup.appendChild(input);
+            container.appendChild(fieldGroup);
+        });
+        
+        // Show the modal
+        const modal = new bootstrap.Modal(document.getElementById('cloneModal'));
+        modal.show();
+    }
 </script>
+

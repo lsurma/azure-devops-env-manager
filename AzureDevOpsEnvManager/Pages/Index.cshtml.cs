@@ -27,6 +27,12 @@ public class IndexModel : PageModel
     
     [BindProperty]
     public int PipelineId { get; set; }
+    
+    [BindProperty]
+    public int TemplateGroupId { get; set; }
+    
+    [BindProperty]
+    public string NewGroupName { get; set; } = string.Empty;
 
     // Define the specific fields we want to display
     public readonly List<string> ExpectedFields = new()
@@ -116,6 +122,51 @@ public class IndexModel : PageModel
         {
             ErrorMessage = $"Error triggering pipeline: {ex.Message}";
             _logger.LogError(ex, "Error triggering pipeline");
+        }
+        
+        await OnGetAsync();
+        return Page();
+    }
+    
+    public async Task<IActionResult> OnPostCreateFromTemplateAsync()
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(NewGroupName))
+            {
+                ErrorMessage = "New group name is required.";
+                await OnGetAsync();
+                return Page();
+            }
+
+            // Parse the form data to get new variable values
+            var newValues = new Dictionary<string, string>();
+            foreach (var key in Request.Form.Keys)
+            {
+                if (key.StartsWith("var_") && key.Length > 4)
+                {
+                    var variableName = key[4..]; // Remove "var_" prefix
+                    var value = Request.Form[key].ToString();
+                    newValues[variableName] = value;
+                }
+            }
+
+            var newGroupId = await _azureDevOpsService.CreateVariableGroupFromTemplateAsync(TemplateGroupId, NewGroupName, newValues);
+            
+            if (newGroupId.HasValue)
+            {
+                SuccessMessage = $"Successfully created variable group '{NewGroupName}' (ID: {newGroupId.Value}) from template.";
+                _logger.LogInformation("Created variable group '{NewGroupName}' with ID {NewGroupId} from template {TemplateGroupId}", NewGroupName, newGroupId.Value, TemplateGroupId);
+            }
+            else
+            {
+                ErrorMessage = $"Failed to create variable group. Please check the logs for details.";
+            }
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Error creating variable group: {ex.Message}";
+            _logger.LogError(ex, "Error creating variable group from template");
         }
         
         await OnGetAsync();

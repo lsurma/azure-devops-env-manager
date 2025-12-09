@@ -8,6 +8,7 @@ A simple ASP.NET Core Razor Pages application to manage and view Azure DevOps pi
 - **Run Pipelines**: Trigger pipeline execution directly from the web interface
 - **Variable Libraries Management**: View all variable libraries with their environment variables
 - **Update Variable Values**: Edit and update variable values directly from the web interface
+- **Clone Variable Groups as Templates**: Create new variable groups based on existing ones with the same variable names but different values
 - **Organized Display**: Shows specific environment variables including:
   - addressFrontIMG
   - addressMigrationsIMG
@@ -102,6 +103,21 @@ To update a variable value in an environment group:
 The application will immediately update the variable in Azure DevOps, and a success message will appear at the top of the page confirming the update.
 
 **Note**: Make sure your Personal Access Token has the "Variable Groups: Read & Manage" permission to enable variable updates.
+
+### Cloning Variable Groups as Templates
+
+To create a new variable group using an existing one as a template:
+
+1. Navigate to the variable library you want to use as a template
+2. Click the **Clone as Template** button in the library's header
+3. In the modal dialog that appears:
+   - Enter a unique name for the new variable group
+   - Fill in new values for each variable (or leave blank to keep original values)
+4. Click **Create Variable Group** to create the new group
+
+This feature is useful for creating multiple environments (dev, staging, production) with the same variable structure but different values. The new group will have the same variable names and structure as the template, but with your specified values.
+
+**Note**: Make sure your Personal Access Token has the "Variable Groups: Read & Manage" permission to enable creating variable groups.
 
 ## Project Structure
 

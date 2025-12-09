@@ -76,7 +76,7 @@ public class IndexModel : PageModel
             if (success)
             {
                 SuccessMessage = $"Successfully updated variable '{VariableName}' in variable group.";
-                _logger.LogInformation($"Updated variable '{VariableName}' in group {VariableGroupId}");
+                _logger.LogInformation("Updated variable '{VariableName}' in group {VariableGroupId}", VariableName, VariableGroupId);
             }
             else
             {

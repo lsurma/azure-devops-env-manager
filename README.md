@@ -5,6 +5,7 @@ A simple ASP.NET Core Razor Pages application to manage and view Azure DevOps pi
 ## Features
 
 - **View Available Pipelines**: Display all pipelines in your Azure DevOps project
+- **Run Pipelines**: Trigger pipeline execution directly from the web interface
 - **Variable Libraries Management**: View all variable libraries with their environment variables
 - **Update Variable Values**: Edit and update variable values directly from the web interface
 - **Organized Display**: Shows specific environment variables including:
@@ -53,7 +54,7 @@ A simple ASP.NET Core Razor Pages application to manage and view Azure DevOps pi
 3. Generate a Personal Access Token (PAT):
    - Go to Azure DevOps → User Settings → Personal Access Tokens
    - Create a new token with the following scopes:
-     - Build: Read
+     - Build: Read & Execute (required for running pipelines)
      - Variable Groups: Read & Manage (required for updating variables)
 
 ## Running the Application
@@ -71,6 +72,18 @@ A simple ASP.NET Core Razor Pages application to manage and view Azure DevOps pi
 3. Open your browser and navigate to `https://localhost:5001` or `http://localhost:5000`
 
 ## Usage
+
+### Running Pipelines
+
+To run a pipeline:
+
+1. Navigate to the "Available Pipelines" section on the main page
+2. Find the pipeline you want to execute
+3. Click the **Run** button next to the pipeline
+4. Confirm the action in the dialog box
+5. The application will trigger the pipeline execution and display a success message with the Run ID
+
+**Note**: Make sure your Personal Access Token has the "Build: Read & Execute" permission to enable pipeline execution.
 
 ### Viewing Variable Libraries
 

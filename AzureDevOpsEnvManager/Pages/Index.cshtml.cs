@@ -24,6 +24,9 @@ public class IndexModel : PageModel
     
     [BindProperty]
     public string VariableValue { get; set; } = string.Empty;
+    
+    [BindProperty]
+    public int PipelineId { get; set; }
 
     // Define the specific fields we want to display
     public readonly List<string> ExpectedFields = new()
@@ -87,6 +90,32 @@ public class IndexModel : PageModel
         {
             ErrorMessage = $"Error updating variable: {ex.Message}";
             _logger.LogError(ex, "Error updating variable");
+        }
+        
+        await OnGetAsync();
+        return Page();
+    }
+    
+    public async Task<IActionResult> OnPostRunPipelineAsync()
+    {
+        try
+        {
+            var runId = await _azureDevOpsService.RunPipelineAsync(PipelineId);
+            
+            if (runId.HasValue)
+            {
+                SuccessMessage = $"Successfully triggered pipeline. Run ID: {runId.Value}";
+                _logger.LogInformation("Triggered pipeline {PipelineId}, Run ID: {RunId}", PipelineId, runId.Value);
+            }
+            else
+            {
+                ErrorMessage = $"Failed to trigger pipeline.";
+            }
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Error triggering pipeline: {ex.Message}";
+            _logger.LogError(ex, "Error triggering pipeline");
         }
         
         await OnGetAsync();

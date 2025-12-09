@@ -1,0 +1,7 @@
+{
+  "AzureDevOps": {
+    "OrganizationUrl": "https://dev.azure.com/your-organization",
+    "PersonalAccessToken": "your-pat-token-here",
+    "ProjectName": "your-project-name"
+  }
+}

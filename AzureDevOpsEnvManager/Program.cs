@@ -18,10 +18,12 @@ builder.Services.AddScoped<AzureDevOpsService>(sp =>
     {
         throw new InvalidOperationException("Azure DevOps configuration is missing");
     }
+    var logger = sp.GetRequiredService<ILogger<AzureDevOpsService>>();
     return new AzureDevOpsService(
         config.OrganizationUrl,
         config.PersonalAccessToken,
-        config.ProjectName
+        config.ProjectName,
+        logger
     );
 });
 

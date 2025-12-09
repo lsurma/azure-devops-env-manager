@@ -70,6 +70,26 @@ A simple ASP.NET Core Razor Pages application to manage and view Azure DevOps pi
 
 3. Open your browser and navigate to `https://localhost:5001` or `http://localhost:5000`
 
+## Usage
+
+### Viewing Variable Libraries
+
+The main page displays all variable libraries (environment groups) from your Azure DevOps project. Each library shows its variables in a table format, with the expected fields listed first, followed by any additional variables.
+
+### Updating Variable Values
+
+To update a variable value in an environment group:
+
+1. Navigate to the variable library you want to modify
+2. Find the variable you want to update
+3. Click the **Edit** button next to the variable
+4. Enter the new value in the input field
+5. Click **Save** to apply the changes, or **Cancel** to discard them
+
+The application will immediately update the variable in Azure DevOps, and a success message will appear at the top of the page confirming the update.
+
+**Note**: Make sure your Personal Access Token has the "Variable Groups: Read & Manage" permission to enable variable updates.
+
 ## Project Structure
 
 ```

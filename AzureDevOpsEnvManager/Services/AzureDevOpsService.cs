@@ -14,15 +14,17 @@ public class AzureDevOpsService : IDisposable
     private readonly HttpClient _httpClient;
     private readonly string _organizationUrl;
     private readonly string _personalAccessToken;
+    private readonly ILogger<AzureDevOpsService> _logger;
     private bool _disposed = false;
 
-    public AzureDevOpsService(string organizationUrl, string personalAccessToken, string projectName)
+    public AzureDevOpsService(string organizationUrl, string personalAccessToken, string projectName, ILogger<AzureDevOpsService> logger)
     {
         var credentials = new VssBasicCredential(string.Empty, personalAccessToken);
         _connection = new VssConnection(new Uri(organizationUrl), credentials);
         _projectName = projectName;
         _organizationUrl = organizationUrl;
         _personalAccessToken = personalAccessToken;
+        _logger = logger;
         
         _httpClient = new HttpClient();
         _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
@@ -39,7 +41,7 @@ public class AzureDevOpsService : IDisposable
             
             if (!response.IsSuccessStatusCode)
             {
-                Console.WriteLine($"Error fetching pipelines: {response.StatusCode}");
+                _logger.LogError("Error fetching pipelines: {StatusCode}", response.StatusCode);
                 return new List<PipelineInfo>();
             }
 
@@ -65,7 +67,7 @@ public class AzureDevOpsService : IDisposable
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error fetching pipelines: {ex.Message}");
+            _logger.LogError(ex, "Error fetching pipelines");
             return new List<PipelineInfo>();
         }
     }
@@ -96,7 +98,7 @@ public class AzureDevOpsService : IDisposable
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error fetching variable libraries: {ex.Message}");
+            _logger.LogError(ex, "Error fetching variable libraries");
             return new List<VariableLibrary>();
         }
     }
@@ -133,7 +135,7 @@ public class AzureDevOpsService : IDisposable
             
             if (variableGroup == null)
             {
-                Console.WriteLine($"Variable group with ID {variableGroupId} not found.");
+                _logger.LogWarning("Variable group with ID {VariableGroupId} not found", variableGroupId);
                 return false;
             }
 
@@ -166,7 +168,7 @@ public class AzureDevOpsService : IDisposable
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error updating variable: {ex.Message}");
+            _logger.LogError(ex, "Error updating variable {VariableName} in group {VariableGroupId}", variableName, variableGroupId);
             return false;
         }
     }

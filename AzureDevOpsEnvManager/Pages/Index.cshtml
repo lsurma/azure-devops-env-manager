@@ -75,7 +75,10 @@
                 <div class="card mb-4">
                     <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                         <h3 class="h5 mb-0">@library.Name (ID: @library.Id)</h3>
-                        <button type="button" class="btn btn-sm btn-light" onclick="showCloneModal(@library.Id, '@Html.Raw(System.Text.Json.JsonSerializer.Serialize(library.Variables.Keys).Replace("\"", "&quot;"))')">
+                        <button type="button" class="btn btn-sm btn-light" 
+                                data-group-id="@library.Id"
+                                data-variable-names="@System.Text.Json.JsonSerializer.Serialize(library.Variables.Keys)"
+                                onclick="showCloneModal(this)">
                             Clone as Template
                         </button>
                     </div>
@@ -233,7 +236,11 @@
         }
     }
 
-    function showCloneModal(groupId, variableNamesJson) {
+    function showCloneModal(button) {
+        // Get the group ID and variable names from data attributes
+        const groupId = button.getAttribute('data-group-id');
+        const variableNamesJson = button.getAttribute('data-variable-names');
+        
         // Set the template group ID
         document.getElementById('templateGroupId').value = groupId;
         
@@ -241,7 +248,7 @@
         document.getElementById('newGroupName').value = '';
         
         // Parse variable names
-        const variableNames = JSON.parse(variableNamesJson.replace(/&quot;/g, '"'));
+        const variableNames = JSON.parse(variableNamesJson);
         
         // Generate input fields for each variable
         const container = document.getElementById('variableFields');

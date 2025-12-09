@@ -143,9 +143,9 @@ public class IndexModel : PageModel
             var newValues = new Dictionary<string, string>();
             foreach (var key in Request.Form.Keys)
             {
-                if (key.StartsWith("var_"))
+                if (key.StartsWith("var_") && key.Length > 4)
                 {
-                    var variableName = key.Substring(4); // Remove "var_" prefix
+                    var variableName = key[4..]; // Remove "var_" prefix
                     var value = Request.Form[key].ToString();
                     newValues[variableName] = value;
                 }

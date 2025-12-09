@@ -222,6 +222,13 @@ public class AzureDevOpsService : IDisposable
     {
         try
         {
+            // Validate inputs
+            if (string.IsNullOrWhiteSpace(newGroupName))
+            {
+                _logger.LogWarning("New group name cannot be null or empty");
+                return null;
+            }
+
             var taskClient = await _connection.GetClientAsync<TaskAgentHttpClient>();
             
             // Get the template variable group
@@ -238,7 +245,9 @@ public class AzureDevOpsService : IDisposable
             
             foreach (var variable in templateGroup.Variables)
             {
-                var newValue = newValues.ContainsKey(variable.Key) ? newValues[variable.Key] : variable.Value.Value ?? string.Empty;
+                var newValue = newValues.TryGetValue(variable.Key, out var value) && !string.IsNullOrEmpty(value) 
+                    ? value 
+                    : variable.Value.Value ?? string.Empty;
                 newVariables[variable.Key] = new Microsoft.TeamFoundation.DistributedTask.WebApi.VariableValue
                 {
                     Value = newValue,

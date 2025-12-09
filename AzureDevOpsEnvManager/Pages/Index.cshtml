@@ -14,6 +14,13 @@
         </div>
     }
 
+    @if (!string.IsNullOrEmpty(Model.SuccessMessage))
+    {
+        <div class="alert alert-success" role="alert">
+            @Model.SuccessMessage
+        </div>
+    }
+
     <!-- Pipelines Section -->
     <section class="mb-5">
         <h2>Available Pipelines</h2>
@@ -69,15 +76,35 @@
                                         <tr>
                                             <th>Variable Name</th>
                                             <th>Value</th>
+                                            <th style="width: 150px;">Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         @foreach (var field in Model.ExpectedFields)
                                         {
                                             var hasValue = library.Variables.ContainsKey(field);
+                                            var currentValue = hasValue ? library.Variables[field] : "";
                                             <tr class="@(hasValue ? "" : "table-secondary")">
                                                 <td><strong>@field</strong></td>
-                                                <td>@(hasValue ? library.Variables[field] : "(not set)")</td>
+                                                <td id="value-@library.Id-@field">@(hasValue ? currentValue : "(not set)")</td>
+                                                <td>
+                                                    <button type="button" class="btn btn-sm btn-primary" onclick="showEditForm('@library.Id', '@field', '@currentValue')">
+                                                        Edit
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                            <tr id="edit-form-@library.Id-@field" style="display: none;">
+                                                <td colspan="3">
+                                                    <form method="post" asp-page-handler="UpdateVariable" class="d-flex gap-2 align-items-center">
+                                                        <input type="hidden" name="VariableGroupId" value="@library.Id" />
+                                                        <input type="hidden" name="VariableName" value="@field" />
+                                                        <div class="flex-grow-1">
+                                                            <input type="text" name="VariableValue" class="form-control" value="@currentValue" placeholder="Enter new value" />
+                                                        </div>
+                                                        <button type="submit" class="btn btn-sm btn-success">Save</button>
+                                                        <button type="button" class="btn btn-sm btn-secondary" onclick="hideEditForm('@library.Id', '@field')">Cancel</button>
+                                                    </form>
+                                                </td>
                                             </tr>
                                         }
                                         @* Display other variables that are not in the expected list *@
@@ -85,7 +112,25 @@
                                         {
                                             <tr>
                                                 <td>@variable.Key</td>
-                                                <td>@variable.Value</td>
+                                                <td id="value-@library.Id-@variable.Key">@variable.Value</td>
+                                                <td>
+                                                    <button type="button" class="btn btn-sm btn-primary" onclick="showEditForm('@library.Id', '@variable.Key', '@variable.Value')">
+                                                        Edit
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                            <tr id="edit-form-@library.Id-@variable.Key" style="display: none;">
+                                                <td colspan="3">
+                                                    <form method="post" asp-page-handler="UpdateVariable" class="d-flex gap-2 align-items-center">
+                                                        <input type="hidden" name="VariableGroupId" value="@library.Id" />
+                                                        <input type="hidden" name="VariableName" value="@variable.Key" />
+                                                        <div class="flex-grow-1">
+                                                            <input type="text" name="VariableValue" class="form-control" value="@variable.Value" placeholder="Enter new value" />
+                                                        </div>
+                                                        <button type="submit" class="btn btn-sm btn-success">Save</button>
+                                                        <button type="button" class="btn btn-sm btn-secondary" onclick="hideEditForm('@library.Id', '@variable.Key')">Cancel</button>
+                                                    </form>
+                                                </td>
                                             </tr>
                                         }
                                     </tbody>
@@ -106,3 +151,25 @@
         }
     </section>
 </div>
+
+<script>
+    function showEditForm(groupId, fieldName, currentValue) {
+        // Hide all other edit forms
+        document.querySelectorAll('[id^="edit-form-"]').forEach(form => {
+            form.style.display = 'none';
+        });
+        
+        // Show the selected edit form
+        const editForm = document.getElementById(`edit-form-${groupId}-${fieldName}`);
+        if (editForm) {
+            editForm.style.display = '';
+        }
+    }
+
+    function hideEditForm(groupId, fieldName) {
+        const editForm = document.getElementById(`edit-form-${groupId}-${fieldName}`);
+        if (editForm) {
+            editForm.style.display = 'none';
+        }
+    }
+</script>

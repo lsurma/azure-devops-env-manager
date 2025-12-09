@@ -6,6 +6,7 @@ A simple ASP.NET Core Razor Pages application to manage and view Azure DevOps pi
 
 - **View Available Pipelines**: Display all pipelines in your Azure DevOps project
 - **Variable Libraries Management**: View all variable libraries with their environment variables
+- **Update Variable Values**: Edit and update variable values directly from the web interface
 - **Organized Display**: Shows specific environment variables including:
   - addressFrontIMG
   - addressMigrationsIMG
@@ -53,7 +54,7 @@ A simple ASP.NET Core Razor Pages application to manage and view Azure DevOps pi
    - Go to Azure DevOps → User Settings → Personal Access Tokens
    - Create a new token with the following scopes:
      - Build: Read
-     - Variable Groups: Read
+     - Variable Groups: Read & Manage (required for updating variables)
 
 ## Running the Application
 

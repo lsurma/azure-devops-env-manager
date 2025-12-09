@@ -122,6 +122,55 @@ public class AzureDevOpsService : IDisposable
         return allVariables;
     }
 
+    public async Task<bool> UpdateVariableAsync(int variableGroupId, string variableName, string newValue)
+    {
+        try
+        {
+            var taskClient = await _connection.GetClientAsync<TaskAgentHttpClient>();
+            
+            // Get the current variable group
+            var variableGroup = await taskClient.GetVariableGroupAsync(project: _projectName, groupId: variableGroupId);
+            
+            if (variableGroup == null)
+            {
+                Console.WriteLine($"Variable group with ID {variableGroupId} not found.");
+                return false;
+            }
+
+            // Update or add the variable
+            if (variableGroup.Variables.ContainsKey(variableName))
+            {
+                variableGroup.Variables[variableName].Value = newValue;
+            }
+            else
+            {
+                variableGroup.Variables[variableName] = new Microsoft.TeamFoundation.DistributedTask.WebApi.VariableValue
+                {
+                    Value = newValue
+                };
+            }
+
+            // Create VariableGroupParameters for update
+            var parameters = new Microsoft.TeamFoundation.DistributedTask.WebApi.VariableGroupParameters
+            {
+                Name = variableGroup.Name,
+                Description = variableGroup.Description,
+                Variables = variableGroup.Variables,
+                Type = variableGroup.Type
+            };
+
+            // Update the variable group
+            var updatedGroup = await taskClient.UpdateVariableGroupAsync(variableGroupId, parameters);
+            
+            return updatedGroup != null;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error updating variable: {ex.Message}");
+            return false;
+        }
+    }
+
     public void Dispose()
     {
         Dispose(true);

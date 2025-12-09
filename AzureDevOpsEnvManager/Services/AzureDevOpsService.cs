@@ -174,6 +174,50 @@ public class AzureDevOpsService : IDisposable
         }
     }
 
+    public async Task<int?> RunPipelineAsync(int pipelineId)
+    {
+        try
+        {
+            var url = $"{_organizationUrl}/{_projectName}/_apis/pipelines/{pipelineId}/runs?api-version=7.1-preview.1";
+            
+            // Create the request body with empty resources (minimum required for pipeline run)
+            // Azure DevOps API requires 'resources' and 'templateParameters' properties even if empty
+            // to queue a run with default branch and parameters
+            var requestBody = new
+            {
+                resources = new { },
+                templateParameters = new { }
+            };
+
+            var jsonContent = JsonSerializer.Serialize(requestBody);
+            var content = new StringContent(jsonContent, System.Text.Encoding.UTF8, "application/json");
+            
+            var response = await _httpClient.PostAsync(url, content);
+            
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                _logger.LogError("Error running pipeline {PipelineId}: {StatusCode} - {Error}", pipelineId, response.StatusCode, errorContent);
+                return null;
+            }
+
+            var responseContent = await response.Content.ReadAsStringAsync();
+            var jsonDoc = JsonDocument.Parse(responseContent);
+            
+            if (jsonDoc.RootElement.TryGetProperty("id", out var runId))
+            {
+                return runId.GetInt32();
+            }
+
+            return null;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error running pipeline {PipelineId}", pipelineId);
+            return null;
+        }
+    }
+
     public void Dispose()
     {
         Dispose(true);

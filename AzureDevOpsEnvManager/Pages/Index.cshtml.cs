@@ -14,6 +14,16 @@ public class IndexModel : PageModel
     public List<VariableLibrary> VariableLibraries { get; set; } = new();
     public List<VariableValue> AllVariables { get; set; } = new();
     public string? ErrorMessage { get; set; }
+    public string? SuccessMessage { get; set; }
+    
+    [BindProperty]
+    public int VariableGroupId { get; set; }
+    
+    [BindProperty]
+    public string VariableName { get; set; } = string.Empty;
+    
+    [BindProperty]
+    public string VariableValue { get; set; } = string.Empty;
 
     // Define the specific fields we want to display
     public readonly List<string> ExpectedFields = new()
@@ -48,5 +58,38 @@ public class IndexModel : PageModel
             ErrorMessage = $"Error loading data: {ex.Message}";
             _logger.LogError(ex, "Error loading Azure DevOps data");
         }
+    }
+    
+    public async Task<IActionResult> OnPostUpdateVariableAsync()
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(VariableName))
+            {
+                ErrorMessage = "Variable name is required.";
+                await OnGetAsync();
+                return Page();
+            }
+
+            var success = await _azureDevOpsService.UpdateVariableAsync(VariableGroupId, VariableName, VariableValue);
+            
+            if (success)
+            {
+                SuccessMessage = $"Successfully updated variable '{VariableName}' in variable group.";
+                _logger.LogInformation("Updated variable '{VariableName}' in group {VariableGroupId}", VariableName, VariableGroupId);
+            }
+            else
+            {
+                ErrorMessage = $"Failed to update variable '{VariableName}'.";
+            }
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Error updating variable: {ex.Message}";
+            _logger.LogError(ex, "Error updating variable");
+        }
+        
+        await OnGetAsync();
+        return Page();
     }
 }

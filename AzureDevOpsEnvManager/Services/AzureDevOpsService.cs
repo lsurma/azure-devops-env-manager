@@ -14,15 +14,17 @@ public class AzureDevOpsService : IDisposable
     private readonly HttpClient _httpClient;
     private readonly string _organizationUrl;
     private readonly string _personalAccessToken;
+    private readonly ILogger<AzureDevOpsService> _logger;
     private bool _disposed = false;
 
-    public AzureDevOpsService(string organizationUrl, string personalAccessToken, string projectName)
+    public AzureDevOpsService(string organizationUrl, string personalAccessToken, string projectName, ILogger<AzureDevOpsService> logger)
     {
         var credentials = new VssBasicCredential(string.Empty, personalAccessToken);
         _connection = new VssConnection(new Uri(organizationUrl), credentials);
         _projectName = projectName;
         _organizationUrl = organizationUrl;
         _personalAccessToken = personalAccessToken;
+        _logger = logger;
         
         _httpClient = new HttpClient();
         _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
@@ -39,7 +41,7 @@ public class AzureDevOpsService : IDisposable
             
             if (!response.IsSuccessStatusCode)
             {
-                Console.WriteLine($"Error fetching pipelines: {response.StatusCode}");
+                _logger.LogError("Error fetching pipelines: {StatusCode}", response.StatusCode);
                 return new List<PipelineInfo>();
             }
 
@@ -65,7 +67,7 @@ public class AzureDevOpsService : IDisposable
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error fetching pipelines: {ex.Message}");
+            _logger.LogError(ex, "Error fetching pipelines");
             return new List<PipelineInfo>();
         }
     }
@@ -96,7 +98,7 @@ public class AzureDevOpsService : IDisposable
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error fetching variable libraries: {ex.Message}");
+            _logger.LogError(ex, "Error fetching variable libraries");
             return new List<VariableLibrary>();
         }
     }
@@ -120,6 +122,55 @@ public class AzureDevOpsService : IDisposable
         }
 
         return allVariables;
+    }
+
+    public async Task<bool> UpdateVariableAsync(int variableGroupId, string variableName, string newValue)
+    {
+        try
+        {
+            var taskClient = await _connection.GetClientAsync<TaskAgentHttpClient>();
+            
+            // Get the current variable group
+            var variableGroup = await taskClient.GetVariableGroupAsync(project: _projectName, groupId: variableGroupId);
+            
+            if (variableGroup == null)
+            {
+                _logger.LogWarning("Variable group with ID {VariableGroupId} not found", variableGroupId);
+                return false;
+            }
+
+            // Update or add the variable
+            if (variableGroup.Variables.ContainsKey(variableName))
+            {
+                variableGroup.Variables[variableName].Value = newValue;
+            }
+            else
+            {
+                variableGroup.Variables[variableName] = new Microsoft.TeamFoundation.DistributedTask.WebApi.VariableValue
+                {
+                    Value = newValue
+                };
+            }
+
+            // Create VariableGroupParameters for update
+            var parameters = new Microsoft.TeamFoundation.DistributedTask.WebApi.VariableGroupParameters
+            {
+                Name = variableGroup.Name,
+                Description = variableGroup.Description,
+                Variables = variableGroup.Variables,
+                Type = variableGroup.Type
+            };
+
+            // Update the variable group
+            var updatedGroup = await taskClient.UpdateVariableGroupAsync(variableGroupId, parameters);
+            
+            return updatedGroup != null;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating variable {VariableName} in group {VariableGroupId}", variableName, variableGroupId);
+            return false;
+        }
     }
 
     public void Dispose()

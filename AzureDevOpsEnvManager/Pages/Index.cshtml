@@ -1,0 +1,108 @@
+﻿@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Azure DevOps Environment Manager";
+}
+
+<div class="container-fluid">
+    <h1 class="display-4 mb-4">Azure DevOps Environment Manager</h1>
+
+    @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+    {
+        <div class="alert alert-danger" role="alert">
+            @Model.ErrorMessage
+        </div>
+    }
+
+    <!-- Pipelines Section -->
+    <section class="mb-5">
+        <h2>Available Pipelines</h2>
+        @if (Model.Pipelines.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-striped table-bordered">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Path</th>
+                            <th>Type</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var pipeline in Model.Pipelines)
+                        {
+                            <tr>
+                                <td>@pipeline.Id</td>
+                                <td>@pipeline.Name</td>
+                                <td>@pipeline.Path</td>
+                                <td>@pipeline.Type</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <p class="text-muted">No pipelines found.</p>
+        }
+    </section>
+
+    <!-- Variable Libraries Section -->
+    <section class="mb-5">
+        <h2>Variable Libraries</h2>
+        @if (Model.VariableLibraries.Any())
+        {
+            @foreach (var library in Model.VariableLibraries)
+            {
+                <div class="card mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h3 class="h5 mb-0">@library.Name (ID: @library.Id)</h3>
+                    </div>
+                    <div class="card-body">
+                        @if (library.Variables.Any())
+                        {
+                            <div class="table-responsive">
+                                <table class="table table-sm table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Variable Name</th>
+                                            <th>Value</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var field in Model.ExpectedFields)
+                                        {
+                                            var hasValue = library.Variables.ContainsKey(field);
+                                            <tr class="@(hasValue ? "" : "table-secondary")">
+                                                <td><strong>@field</strong></td>
+                                                <td>@(hasValue ? library.Variables[field] : "(not set)")</td>
+                                            </tr>
+                                        }
+                                        @* Display other variables that are not in the expected list *@
+                                        @foreach (var variable in library.Variables.Where(v => !Model.ExpectedFields.Contains(v.Key)))
+                                        {
+                                            <tr>
+                                                <td>@variable.Key</td>
+                                                <td>@variable.Value</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
+                        else
+                        {
+                            <p class="text-muted">No variables in this library.</p>
+                        }
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <p class="text-muted">No variable libraries found.</p>
+        }
+    </section>
+</div>

@@ -77,3 +77,6 @@ node_modules/
 *.cache
 *.mdf
 *.ldf
+
+# Note: wwwroot/lib is kept in source control for this project
+# as it uses client-side libraries that come with the template

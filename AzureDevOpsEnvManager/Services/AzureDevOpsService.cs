@@ -7,13 +7,14 @@ using System.Text.Json;
 
 namespace AzureDevOpsEnvManager.Services;
 
-public class AzureDevOpsService
+public class AzureDevOpsService : IDisposable
 {
     private readonly VssConnection _connection;
     private readonly string _projectName;
     private readonly HttpClient _httpClient;
     private readonly string _organizationUrl;
     private readonly string _personalAccessToken;
+    private bool _disposed = false;
 
     public AzureDevOpsService(string organizationUrl, string personalAccessToken, string projectName)
     {
@@ -119,5 +120,24 @@ public class AzureDevOpsService
         }
 
         return allVariables;
+    }
+
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (!_disposed)
+        {
+            if (disposing)
+            {
+                _httpClient?.Dispose();
+                _connection?.Dispose();
+            }
+            _disposed = true;
+        }
     }
 }

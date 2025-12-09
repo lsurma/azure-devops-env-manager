@@ -261,7 +261,8 @@ public class AzureDevOpsService : IDisposable
                 Name = newGroupName,
                 Description = $"Created from template: {templateGroup.Name}",
                 Variables = newVariables,
-                Type = templateGroup.Type
+                Type = templateGroup.Type,
+                VariableGroupProjectReferences = templateGroup.VariableGroupProjectReferences
             };
 
             // Add the variable group

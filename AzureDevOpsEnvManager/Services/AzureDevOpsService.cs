@@ -181,6 +181,8 @@ public class AzureDevOpsService : IDisposable
             var url = $"{_organizationUrl}/{_projectName}/_apis/pipelines/{pipelineId}/runs?api-version=7.1-preview.1";
             
             // Create the request body with empty resources (minimum required for pipeline run)
+            // Azure DevOps API requires 'resources' and 'templateParameters' properties even if empty
+            // to queue a run with default branch and parameters
             var requestBody = new
             {
                 resources = new { },

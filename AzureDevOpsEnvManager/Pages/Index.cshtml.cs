@@ -109,7 +109,7 @@ public class IndexModel : PageModel
             }
             else
             {
-                ErrorMessage = $"Failed to trigger pipeline.";
+                ErrorMessage = $"Failed to trigger pipeline. Please check the logs for details or verify your PAT has 'Build: Read & Execute' permissions.";
             }
         }
         catch (Exception ex)

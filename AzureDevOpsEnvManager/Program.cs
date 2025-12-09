@@ -38,8 +38,6 @@ class Program
             return;
         }
 
-        var manager = new AzureDevOpsManager(organizationUrl, personalAccessToken, projectName);
-
         if (args.Length == 0)
         {
             ShowUsage();
@@ -48,6 +46,7 @@ class Program
 
         try
         {
+            var manager = new AzureDevOpsManager(organizationUrl, personalAccessToken, projectName);
             var command = args[0].ToLower();
 
             switch (command)
@@ -137,8 +136,13 @@ class AzureDevOpsManager
 
     public AzureDevOpsManager(string organizationUrl, string personalAccessToken, string projectName)
     {
+        if (!Uri.TryCreate(organizationUrl, UriKind.Absolute, out var uri))
+        {
+            throw new ArgumentException($"Invalid organization URL: {organizationUrl}. Please provide a valid URL (e.g., https://dev.azure.com/your-organization)", nameof(organizationUrl));
+        }
+        
         var credentials = new VssBasicCredential(string.Empty, personalAccessToken);
-        _connection = new VssConnection(new Uri(organizationUrl), credentials);
+        _connection = new VssConnection(uri, credentials);
         _projectName = projectName;
     }
 

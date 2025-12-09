@@ -158,7 +158,8 @@ public class AzureDevOpsService : IDisposable
                 Name = variableGroup.Name,
                 Description = variableGroup.Description,
                 Variables = variableGroup.Variables,
-                Type = variableGroup.Type
+                Type = variableGroup.Type,
+                VariableGroupProjectReferences = variableGroup.VariableGroupProjectReferences
             };
 
             // Update the variable group

@@ -218,6 +218,62 @@ public class AzureDevOpsService : IDisposable
         }
     }
 
+    public async Task<int?> CreateVariableGroupFromTemplateAsync(int templateGroupId, string newGroupName, Dictionary<string, string> newValues)
+    {
+        try
+        {
+            var taskClient = await _connection.GetClientAsync<TaskAgentHttpClient>();
+            
+            // Get the template variable group
+            var templateGroup = await taskClient.GetVariableGroupAsync(project: _projectName, groupId: templateGroupId);
+            
+            if (templateGroup == null)
+            {
+                _logger.LogWarning("Template variable group with ID {VariableGroupId} not found", templateGroupId);
+                return null;
+            }
+
+            // Create new variables dictionary with same keys but new values
+            var newVariables = new Dictionary<string, Microsoft.TeamFoundation.DistributedTask.WebApi.VariableValue>();
+            
+            foreach (var variable in templateGroup.Variables)
+            {
+                var newValue = newValues.ContainsKey(variable.Key) ? newValues[variable.Key] : variable.Value.Value ?? string.Empty;
+                newVariables[variable.Key] = new Microsoft.TeamFoundation.DistributedTask.WebApi.VariableValue
+                {
+                    Value = newValue,
+                    IsSecret = variable.Value.IsSecret
+                };
+            }
+
+            // Create new variable group parameters
+            var parameters = new Microsoft.TeamFoundation.DistributedTask.WebApi.VariableGroupParameters
+            {
+                Name = newGroupName,
+                Description = $"Created from template: {templateGroup.Name}",
+                Variables = newVariables,
+                Type = templateGroup.Type
+            };
+
+            // Add the variable group
+            var newGroup = await taskClient.AddVariableGroupAsync(parameters);
+            
+            if (newGroup != null)
+            {
+                _logger.LogInformation("Created new variable group '{NewGroupName}' (ID: {NewGroupId}) from template '{TemplateGroupName}' (ID: {TemplateGroupId})", 
+                    newGroupName, newGroup.Id, templateGroup.Name, templateGroupId);
+                return newGroup.Id;
+            }
+
+            return null;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error creating variable group from template {TemplateGroupId}", templateGroupId);
+            return null;
+        }
+    }
+
     public void Dispose()
     {
         Dispose(true);

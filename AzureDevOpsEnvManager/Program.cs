@@ -3,7 +3,6 @@ using Microsoft.TeamFoundation.Core.WebApi;
 using Microsoft.VisualStudio.Services.Common;
 using Microsoft.VisualStudio.Services.WebApi;
 using Microsoft.Extensions.Configuration;
-using System.Text.Json;
 
 namespace AzureDevOpsEnvManager;
 
@@ -312,6 +311,15 @@ class AzureDevOpsManager
         Console.WriteLine($"Build ID: {queuedBuild.Id}");
         Console.WriteLine($"Build Number: {queuedBuild.BuildNumber}");
         Console.WriteLine($"Status: {queuedBuild.Status}");
-        Console.WriteLine($"URL: {queuedBuild.Links?.Links["web"]?.GetType().GetProperty("Href")?.GetValue(queuedBuild.Links.Links["web"])}");
+        
+        // Try to get web URL if available
+        if (queuedBuild.Links?.Links != null && queuedBuild.Links.Links.ContainsKey("web"))
+        {
+            var webLink = queuedBuild.Links.Links["web"];
+            if (webLink is Microsoft.VisualStudio.Services.WebApi.ReferenceLink refLink)
+            {
+                Console.WriteLine($"URL: {refLink.Href}");
+            }
+        }
     }
 }
